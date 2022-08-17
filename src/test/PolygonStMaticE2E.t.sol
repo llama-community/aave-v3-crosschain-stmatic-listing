@@ -168,20 +168,20 @@ contract PolygonStMaticE2ETest is Test {
       allConfigsAfter
     );
 
-    //   AaveV3Helpers._validateReserveTokensImpls(
-    //     vm,
-    //     AaveV3Helpers._findReserveConfig(allConfigsAfter, 'stMATIC', false),
-    //     ReserveTokens({
-    //       aToken: stMaticPayload.ATOKEN_IMPL(),
-    //       stableDebtToken: stMaticPayload.SDTOKEN_IMPL(),
-    //       variableDebtToken: stMaticPayload.VDTOKEN_IMPL()
-    //     })
-    //   );
+    AaveV3Helpers._validateReserveTokensImpls(
+      vm,
+      AaveV3Helpers._findReserveConfig(allConfigsAfter, 'stMATIC', false),
+      ReserveTokens({
+        aToken: stMaticPayload.ATOKEN_IMPL(),
+        stableDebtToken: stMaticPayload.SDTOKEN_IMPL(),
+        variableDebtToken: stMaticPayload.VDTOKEN_IMPL()
+      })
+    );
 
-    //   AaveV3Helpers._validateAssetSourceOnOracle(
-    //     STMATIC,
-    //     stMaticPayload.PRICE_FEED()
-    //   );
+    AaveV3Helpers._validateAssetSourceOnOracle(
+      STMATIC,
+      stMaticPayload.PRICE_FEED()
+    );
 
     //   // impl should be same as USDC
     //   AaveV3Helpers._validateReserveTokensImpls(
