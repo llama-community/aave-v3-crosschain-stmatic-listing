@@ -34,12 +34,16 @@ contract StMaticPayload is IProposalGenericExecutor {
   address public constant PRICE_FEED =
     0x97371dF4492605486e23Da797fA68e55Fc38a13f;
 
+  // TO DO: Check with BGD if these are right
   address public constant ATOKEN_IMPL =
     0xa5ba6E5EC19a1Bf23C857991c857dB62b2Aa187B;
   address public constant VDTOKEN_IMPL =
     0x81387c40EB75acB02757C1Ae55D5936E78c9dEd3;
   address public constant SDTOKEN_IMPL =
     0x52A1CeB68Ee6b7B5D13E0376A1E0E4423A8cE26e;
+
+  // TO DO: Check with BGD if the Rate Strategy contract is right
+  // If not, how to create a new one?
   address public constant RATE_STRATEGY =
     0x41B66b4b6b4c9dab039d96528D1b88f7BAF8C5A4;
 
@@ -63,6 +67,13 @@ contract StMaticPayload is IProposalGenericExecutor {
   string public constant EMODE_LABEL = 'stMATIC';
 
   function execute() external override {
+    // -------------
+    // Claim pool admin
+    // Only needed for the first proposal on any market. If ACL_ADMIN was previously set it will ignore
+    // https://github.com/aave/aave-v3-core/blob/master/contracts/dependencies/openzeppelin/contracts/AccessControl.sol#L207
+    // -------------
+    AaveV3Polygon.ACL_MANAGER.addPoolAdmin(AaveV3Polygon.ACL_ADMIN);
+
     // ----------------------------
     // 1. New price feed on oracle
     // ----------------------------

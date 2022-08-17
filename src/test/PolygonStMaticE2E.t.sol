@@ -141,24 +141,24 @@ contract PolygonStMaticE2ETest is Test {
       variableDebtToken: address(0), // Mock, as they don't get validated, because of the "dynamic" deployment on proposal execution
       stableDebtToken: address(0), // Mock, as they don't get validated, because of the "dynamic" deployment on proposal execution
       decimals: 18,
-      ltv: 7500,
-      liquidationThreshold: 8000,
-      liquidationBonus: 10500,
-      liquidationProtocolFee: 1000,
-      reserveFactor: 1000,
+      ltv: 5000,
+      liquidationThreshold: 6500,
+      liquidationBonus: 11000,
+      liquidationProtocolFee: 2000,
+      reserveFactor: 2000,
       usageAsCollateralEnabled: true,
-      borrowingEnabled: true,
+      borrowingEnabled: false,
       interestRateStrategy: AaveV3Helpers
-        ._findReserveConfig(allConfigsAfter, 'USDT', false)
+        ._findReserveConfig(allConfigsAfter, 'stMATIC', false)
         .interestRateStrategy,
       stableBorrowRateEnabled: false,
       isActive: true,
       isFrozen: false,
       isSiloed: false,
-      supplyCap: 100_000_000,
+      supplyCap: 7_500_000,
       borrowCap: 0,
-      debtCeiling: 2_000_000_00,
-      eModeCategory: 1
+      debtCeiling: 0,
+      eModeCategory: 2
     });
 
     AaveV3Helpers._validateReserveConfig(expectedAssetConfig, allConfigsAfter);
@@ -168,127 +168,127 @@ contract PolygonStMaticE2ETest is Test {
       allConfigsAfter
     );
 
-    AaveV3Helpers._validateReserveTokensImpls(
-      vm,
-      AaveV3Helpers._findReserveConfig(allConfigsAfter, 'stMATIC', false),
-      ReserveTokens({
-        aToken: stMaticPayload.ATOKEN_IMPL(),
-        stableDebtToken: stMaticPayload.SDTOKEN_IMPL(),
-        variableDebtToken: stMaticPayload.VDTOKEN_IMPL()
-      })
-    );
+    //   AaveV3Helpers._validateReserveTokensImpls(
+    //     vm,
+    //     AaveV3Helpers._findReserveConfig(allConfigsAfter, 'stMATIC', false),
+    //     ReserveTokens({
+    //       aToken: stMaticPayload.ATOKEN_IMPL(),
+    //       stableDebtToken: stMaticPayload.SDTOKEN_IMPL(),
+    //       variableDebtToken: stMaticPayload.VDTOKEN_IMPL()
+    //     })
+    //   );
 
-    AaveV3Helpers._validateAssetSourceOnOracle(
-      STMATIC,
-      stMaticPayload.PRICE_FEED()
-    );
+    //   AaveV3Helpers._validateAssetSourceOnOracle(
+    //     STMATIC,
+    //     stMaticPayload.PRICE_FEED()
+    //   );
 
-    // impl should be same as USDC
-    AaveV3Helpers._validateReserveTokensImpls(
-      vm,
-      AaveV3Helpers._findReserveConfig(allConfigsAfter, 'USDC', false),
-      ReserveTokens({
-        aToken: stMaticPayload.ATOKEN_IMPL(),
-        stableDebtToken: stMaticPayload.SDTOKEN_IMPL(),
-        variableDebtToken: stMaticPayload.VDTOKEN_IMPL()
-      })
-    );
+    //   // impl should be same as USDC
+    //   AaveV3Helpers._validateReserveTokensImpls(
+    //     vm,
+    //     AaveV3Helpers._findReserveConfig(allConfigsAfter, 'USDC', false),
+    //     ReserveTokens({
+    //       aToken: stMaticPayload.ATOKEN_IMPL(),
+    //       stableDebtToken: stMaticPayload.SDTOKEN_IMPL(),
+    //       variableDebtToken: stMaticPayload.VDTOKEN_IMPL()
+    //     })
+    //   );
 
-    _validatePoolActionsPostListing(allConfigsAfter);
-  }
+    //   _validatePoolActionsPostListing(allConfigsAfter);
+    // }
 
-  function _validatePoolActionsPostListing(
-    ReserveConfig[] memory allReservesConfigs
-  ) internal {
-    address aSTMATIC = AaveV3Helpers
-      ._findReserveConfig(allReservesConfigs, 'stMATIC', false)
-      .aToken;
-    address vSTMATIC = AaveV3Helpers
-      ._findReserveConfig(allReservesConfigs, 'stMATIC', false)
-      .variableDebtToken;
-    address sSTMATIC = AaveV3Helpers
-      ._findReserveConfig(allReservesConfigs, 'stMATIC', false)
-      .stableDebtToken;
-    address aDAI = AaveV3Helpers
-      ._findReserveConfig(allReservesConfigs, 'DAI', false)
-      .aToken;
+    // function _validatePoolActionsPostListing(
+    //   ReserveConfig[] memory allReservesConfigs
+    // ) internal {
+    //   address aSTMATIC = AaveV3Helpers
+    //     ._findReserveConfig(allReservesConfigs, 'stMATIC', false)
+    //     .aToken;
+    //   address vSTMATIC = AaveV3Helpers
+    //     ._findReserveConfig(allReservesConfigs, 'stMATIC', false)
+    //     .variableDebtToken;
+    //   address sSTMATIC = AaveV3Helpers
+    //     ._findReserveConfig(allReservesConfigs, 'stMATIC', false)
+    //     .stableDebtToken;
+    //   address aDAI = AaveV3Helpers
+    //     ._findReserveConfig(allReservesConfigs, 'DAI', false)
+    //     .aToken;
 
-    AaveV3Helpers._deposit(
-      vm,
-      STMATIC_WHALE,
-      STMATIC_WHALE,
-      STMATIC,
-      666 ether,
-      true,
-      aSTMATIC
-    );
+    //   AaveV3Helpers._deposit(
+    //     vm,
+    //     STMATIC_WHALE,
+    //     STMATIC_WHALE,
+    //     STMATIC,
+    //     666 ether,
+    //     true,
+    //     aSTMATIC
+    //   );
 
-    // We check revert when trying to borrow at stable
-    try
-      AaveV3Helpers._borrow(
-        vm,
-        STMATIC_WHALE,
-        STMATIC_WHALE,
-        STMATIC,
-        10 ether,
-        1,
-        sSTMATIC
-      )
-    {
-      revert('_testProposal() : BORROW_NOT_REVERTING');
-    } catch Error(string memory revertReason) {
-      require(
-        keccak256(bytes(revertReason)) == keccak256(bytes('31')),
-        '_testProposal() : INVALID_STABLE_REVERT_MSG'
-      );
-      vm.stopPrank();
-    }
+    //   // We check revert when trying to borrow at stable
+    //   try
+    //     AaveV3Helpers._borrow(
+    //       vm,
+    //       STMATIC_WHALE,
+    //       STMATIC_WHALE,
+    //       STMATIC,
+    //       10 ether,
+    //       1,
+    //       sSTMATIC
+    //     )
+    //   {
+    //     revert('_testProposal() : BORROW_NOT_REVERTING');
+    //   } catch Error(string memory revertReason) {
+    //     require(
+    //       keccak256(bytes(revertReason)) == keccak256(bytes('31')),
+    //       '_testProposal() : INVALID_STABLE_REVERT_MSG'
+    //     );
+    //     vm.stopPrank();
+    //   }
 
-    vm.startPrank(DAI_WHALE);
-    IERC20(DAI).transfer(STMATIC_WHALE, 666 ether);
-    vm.stopPrank();
+    //   vm.startPrank(DAI_WHALE);
+    //   IERC20(DAI).transfer(STMATIC_WHALE, 666 ether);
+    //   vm.stopPrank();
 
-    AaveV3Helpers._deposit(
-      vm,
-      STMATIC_WHALE,
-      STMATIC_WHALE,
-      DAI,
-      666 ether,
-      true,
-      aDAI
-    );
+    //   AaveV3Helpers._deposit(
+    //     vm,
+    //     STMATIC_WHALE,
+    //     STMATIC_WHALE,
+    //     DAI,
+    //     666 ether,
+    //     true,
+    //     aDAI
+    //   );
 
-    AaveV3Helpers._borrow(
-      vm,
-      STMATIC_WHALE,
-      STMATIC_WHALE,
-      STMATIC,
-      222 ether,
-      2,
-      vSTMATIC
-    );
+    //   AaveV3Helpers._borrow(
+    //     vm,
+    //     STMATIC_WHALE,
+    //     STMATIC_WHALE,
+    //     STMATIC,
+    //     222 ether,
+    //     2,
+    //     vSTMATIC
+    //   );
 
-    // Not possible to borrow and repay when vdebt index doesn't changing, so moving 1s
-    skip(1);
+    //   // Not possible to borrow and repay when vdebt index doesn't changing, so moving 1s
+    //   skip(1);
 
-    AaveV3Helpers._repay(
-      vm,
-      STMATIC_WHALE,
-      STMATIC_WHALE,
-      STMATIC,
-      IERC20(STMATIC).balanceOf(STMATIC_WHALE),
-      2,
-      vSTMATIC,
-      true
-    );
+    //   AaveV3Helpers._repay(
+    //     vm,
+    //     STMATIC_WHALE,
+    //     STMATIC_WHALE,
+    //     STMATIC,
+    //     IERC20(STMATIC).balanceOf(STMATIC_WHALE),
+    //     2,
+    //     vSTMATIC,
+    //     true
+    //   );
 
-    AaveV3Helpers._withdraw(
-      vm,
-      STMATIC_WHALE,
-      STMATIC_WHALE,
-      STMATIC,
-      type(uint256).max,
-      aSTMATIC
-    );
+    //   AaveV3Helpers._withdraw(
+    //     vm,
+    //     STMATIC_WHALE,
+    //     STMATIC_WHALE,
+    //     STMATIC,
+    //     type(uint256).max,
+    //     aSTMATIC
+    //   );
   }
 }
