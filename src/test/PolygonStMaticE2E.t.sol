@@ -183,35 +183,35 @@ contract PolygonStMaticE2ETest is Test {
       stMaticPayload.PRICE_FEED()
     );
 
-    //   // impl should be same as USDC
-    //   AaveV3Helpers._validateReserveTokensImpls(
-    //     vm,
-    //     AaveV3Helpers._findReserveConfig(allConfigsAfter, 'USDC', false),
-    //     ReserveTokens({
-    //       aToken: stMaticPayload.ATOKEN_IMPL(),
-    //       stableDebtToken: stMaticPayload.SDTOKEN_IMPL(),
-    //       variableDebtToken: stMaticPayload.VDTOKEN_IMPL()
-    //     })
-    //   );
+    // impl should be same as USDC
+    AaveV3Helpers._validateReserveTokensImpls(
+      vm,
+      AaveV3Helpers._findReserveConfig(allConfigsAfter, 'USDC', false),
+      ReserveTokens({
+        aToken: stMaticPayload.ATOKEN_IMPL(),
+        stableDebtToken: stMaticPayload.SDTOKEN_IMPL(),
+        variableDebtToken: stMaticPayload.VDTOKEN_IMPL()
+      })
+    );
 
-    //   _validatePoolActionsPostListing(allConfigsAfter);
-    // }
+    _validatePoolActionsPostListing(allConfigsAfter);
+  }
 
-    // function _validatePoolActionsPostListing(
-    //   ReserveConfig[] memory allReservesConfigs
-    // ) internal {
-    //   address aSTMATIC = AaveV3Helpers
-    //     ._findReserveConfig(allReservesConfigs, 'stMATIC', false)
-    //     .aToken;
-    //   address vSTMATIC = AaveV3Helpers
-    //     ._findReserveConfig(allReservesConfigs, 'stMATIC', false)
-    //     .variableDebtToken;
-    //   address sSTMATIC = AaveV3Helpers
-    //     ._findReserveConfig(allReservesConfigs, 'stMATIC', false)
-    //     .stableDebtToken;
-    //   address aDAI = AaveV3Helpers
-    //     ._findReserveConfig(allReservesConfigs, 'DAI', false)
-    //     .aToken;
+  function _validatePoolActionsPostListing(
+    ReserveConfig[] memory allReservesConfigs
+  ) internal {
+    address aSTMATIC = AaveV3Helpers
+      ._findReserveConfig(allReservesConfigs, 'stMATIC', false)
+      .aToken;
+    address vSTMATIC = AaveV3Helpers
+      ._findReserveConfig(allReservesConfigs, 'stMATIC', false)
+      .variableDebtToken;
+    address sSTMATIC = AaveV3Helpers
+      ._findReserveConfig(allReservesConfigs, 'stMATIC', false)
+      .stableDebtToken;
+    address aDAI = AaveV3Helpers
+      ._findReserveConfig(allReservesConfigs, 'DAI', false)
+      .aToken;
 
     //   AaveV3Helpers._deposit(
     //     vm,
