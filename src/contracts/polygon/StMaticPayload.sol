@@ -41,10 +41,9 @@ contract StMaticPayload is IProposalGenericExecutor {
   address public constant SDTOKEN_IMPL =
     0x52A1CeB68Ee6b7B5D13E0376A1E0E4423A8cE26e;
 
-  // TO DO: Check with BGD if the Rate Strategy contract is right
-  // If not, how to create a new one?
+  // Rate Strategy contract
   address public constant RATE_STRATEGY =
-    0x41B66b4b6b4c9dab039d96528D1b88f7BAF8C5A4;
+    0x03733F4E008d36f2e37F0080fF1c8DF756622E6F;
 
   // Params to set reserve as collateral
   uint256 public constant COL_LTV = 5000; // 50%
