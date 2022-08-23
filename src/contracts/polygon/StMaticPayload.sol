@@ -60,9 +60,9 @@ contract StMaticPayload is IProposalGenericExecutor {
 
   // Params to set eMode category
   uint8 public constant EMODE_CATEGORY = 2;
-  uint16 public constant EMODE_LTV = 9500; // 95%
-  uint16 public constant EMODE_LIQ_THRESHOLD = 9700; // 97%
-  uint16 public constant EMODE_LIQ_BONUS = 10250; // 2.5%
+  uint16 public constant EMODE_LTV = 9250; // 92.5%
+  uint16 public constant EMODE_LIQ_THRESHOLD = 9500; // 95%
+  uint16 public constant EMODE_LIQ_BONUS = 10100; // 1%
   string public constant EMODE_LABEL = 'stMATIC';
 
   function execute() external override {
