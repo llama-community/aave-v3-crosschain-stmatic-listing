@@ -213,36 +213,65 @@ contract PolygonStMaticE2ETest is Test {
       ._findReserveConfig(allReservesConfigs, 'DAI', false)
       .aToken;
 
-    //   AaveV3Helpers._deposit(
+    // Deposit stMATIC from stMATIC Whale and receive aSTMATIC
+    AaveV3Helpers._deposit(
+      vm,
+      STMATIC_WHALE,
+      STMATIC_WHALE,
+      STMATIC,
+      666 ether,
+      true,
+      aSTMATIC
+    );
+
+    // Expecting to Revert with error code '30' ('BORROWING_NOT_ENABLED') for stable rate borrowing
+    // https://github.com/aave/aave-v3-core/blob/master/contracts/protocol/libraries/helpers/Errors.sol#L39
+    vm.expectRevert(bytes('30'));
+    AaveV3Helpers._borrow(
+      vm,
+      STMATIC_WHALE,
+      STMATIC_WHALE,
+      STMATIC,
+      10 ether,
+      1,
+      sSTMATIC
+    );
+    vm.stopPrank();
+
+    // Expecting to Revert with error code '30' ('BORROWING_NOT_ENABLED') for variable rate borrowing
+    // https://github.com/aave/aave-v3-core/blob/master/contracts/protocol/libraries/helpers/Errors.sol#L39
+    vm.expectRevert(bytes('30'));
+    AaveV3Helpers._borrow(
+      vm,
+      STMATIC_WHALE,
+      STMATIC_WHALE,
+      STMATIC,
+      10 ether,
+      2,
+      vSTMATIC
+    );
+    vm.stopPrank();
+
+    // // We check revert when trying to borrow at stable
+    // try
+    //   AaveV3Helpers._borrow(
     //     vm,
     //     STMATIC_WHALE,
     //     STMATIC_WHALE,
     //     STMATIC,
-    //     666 ether,
-    //     true,
-    //     aSTMATIC
+    //     10 ether,
+    //     1,
+    //     sSTMATIC
+    //   )
+    // {
+    //   revert('_testProposal() : BORROW_NOT_REVERTING');
+    // } catch Error(string memory revertReason) {
+    //   require(
+    //     keccak256(bytes(revertReason)) == keccak256(bytes('31')),
+    //     '_testProposal() : INVALID_STABLE_REVERT_MSG'
     //   );
-
-    //   // We check revert when trying to borrow at stable
-    //   try
-    //     AaveV3Helpers._borrow(
-    //       vm,
-    //       STMATIC_WHALE,
-    //       STMATIC_WHALE,
-    //       STMATIC,
-    //       10 ether,
-    //       1,
-    //       sSTMATIC
-    //     )
-    //   {
-    //     revert('_testProposal() : BORROW_NOT_REVERTING');
-    //   } catch Error(string memory revertReason) {
-    //     require(
-    //       keccak256(bytes(revertReason)) == keccak256(bytes('31')),
-    //       '_testProposal() : INVALID_STABLE_REVERT_MSG'
-    //     );
-    //     vm.stopPrank();
-    //   }
+    //   vm.stopPrank();
+    // }
 
     //   vm.startPrank(DAI_WHALE);
     //   IERC20(DAI).transfer(STMATIC_WHALE, 666 ether);
