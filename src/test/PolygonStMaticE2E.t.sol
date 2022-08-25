@@ -212,6 +212,12 @@ contract PolygonStMaticE2ETest is Test {
     address aDAI = AaveV3Helpers
       ._findReserveConfig(allReservesConfigs, 'DAI', false)
       .aToken;
+    address vDAI = AaveV3Helpers
+      ._findReserveConfig(allReservesConfigs, 'DAI', false)
+      .variableDebtToken;
+    address sDAI = AaveV3Helpers
+      ._findReserveConfig(allReservesConfigs, 'DAI', false)
+      .stableDebtToken;
 
     // Deposit stMATIC from stMATIC Whale and receive aSTMATIC
     AaveV3Helpers._deposit(
@@ -222,6 +228,17 @@ contract PolygonStMaticE2ETest is Test {
       666 ether,
       true,
       aSTMATIC
+    );
+
+    // Testing borrowing of DAI against stMATIC as collateral
+    AaveV3Helpers._borrow(
+      vm,
+      STMATIC_WHALE,
+      STMATIC_WHALE,
+      DAI,
+      2 ether,
+      2,
+      vDAI
     );
 
     // Expecting to Revert with error code '30' ('BORROWING_NOT_ENABLED') for stable rate borrowing
