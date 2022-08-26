@@ -31,7 +31,6 @@ contract PolygonStMaticE2ETest is Test {
   address public constant STMATIC_WHALE =
     0x65752C54D9102BDFD69d351E1838A1Be83C924C6;
 
-  // TO DO: Do we need DAI for borrowing
   address public constant DAI = 0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063;
   address public constant DAI_WHALE =
     0xd7052EC0Fe1fe25b20B7D65F6f3d490fCE58804f;
@@ -149,7 +148,7 @@ contract PolygonStMaticE2ETest is Test {
       usageAsCollateralEnabled: true,
       borrowingEnabled: false,
       interestRateStrategy: AaveV3Helpers
-        ._findReserveConfig(allConfigsAfter, 'stMATIC', false)
+        ._findReserveConfig(allConfigsAfter, 'stMATIC', true)
         .interestRateStrategy,
       stableBorrowRateEnabled: false,
       isActive: true,
@@ -183,7 +182,7 @@ contract PolygonStMaticE2ETest is Test {
       stMaticPayload.PRICE_FEED()
     );
 
-    // impl should be same as USDC
+    // Reserve token implementation contracts should be same as USDC
     AaveV3Helpers._validateReserveTokensImpls(
       vm,
       AaveV3Helpers._findReserveConfig(allConfigsAfter, 'USDC', false),
@@ -209,15 +208,9 @@ contract PolygonStMaticE2ETest is Test {
     address sSTMATIC = AaveV3Helpers
       ._findReserveConfig(allReservesConfigs, 'stMATIC', false)
       .stableDebtToken;
-    address aDAI = AaveV3Helpers
-      ._findReserveConfig(allReservesConfigs, 'DAI', false)
-      .aToken;
     address vDAI = AaveV3Helpers
       ._findReserveConfig(allReservesConfigs, 'DAI', false)
       .variableDebtToken;
-    address sDAI = AaveV3Helpers
-      ._findReserveConfig(allReservesConfigs, 'DAI', false)
-      .stableDebtToken;
 
     // Deposit stMATIC from stMATIC Whale and receive aSTMATIC
     AaveV3Helpers._deposit(
@@ -274,8 +267,8 @@ contract PolygonStMaticE2ETest is Test {
     IERC20(DAI).transfer(STMATIC_WHALE, 300 ether);
     vm.stopPrank();
 
-    // Not possible to borrow and repay when vdebt index doesn't changing, so moving 1s
-    skip(1);
+    // Not possible to borrow and repay when vdebt index doesn't changing, so moving ahead 10000s
+    skip(10000);
 
     // Repaying back DAI loan
     AaveV3Helpers._repay(
@@ -296,7 +289,7 @@ contract PolygonStMaticE2ETest is Test {
       STMATIC_WHALE,
       STMATIC,
       type(uint256).max,
-      sSTMATIC
+      aSTMATIC
     );
   }
 }

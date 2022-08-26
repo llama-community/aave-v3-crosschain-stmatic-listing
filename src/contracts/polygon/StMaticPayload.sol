@@ -34,6 +34,7 @@ contract StMaticPayload is IProposalGenericExecutor {
   address public constant PRICE_FEED =
     0x97371dF4492605486e23Da797fA68e55Fc38a13f;
 
+  // AAVE v3 Reserve Token implementation contracts
   address public constant ATOKEN_IMPL =
     0xa5ba6E5EC19a1Bf23C857991c857dB62b2Aa187B;
   address public constant VDTOKEN_IMPL =
