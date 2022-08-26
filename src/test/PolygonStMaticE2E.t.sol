@@ -269,6 +269,36 @@ contract PolygonStMaticE2ETest is Test {
     );
     vm.stopPrank();
 
+    // Transferring some extra DAI to stMATIC whale for repaying back the loan.
+    vm.startPrank(DAI_WHALE);
+    IERC20(DAI).transfer(STMATIC_WHALE, 300 ether);
+    vm.stopPrank();
+
+    // Not possible to borrow and repay when vdebt index doesn't changing, so moving 1s
+    skip(1);
+
+    // Repaying back DAI loan
+    AaveV3Helpers._repay(
+      vm,
+      STMATIC_WHALE,
+      STMATIC_WHALE,
+      DAI,
+      IERC20(DAI).balanceOf(STMATIC_WHALE),
+      2,
+      vDAI,
+      true
+    );
+
+    // Withdrawing stMATIC
+    AaveV3Helpers._withdraw(
+      vm,
+      STMATIC_WHALE,
+      STMATIC_WHALE,
+      STMATIC,
+      type(uint256).max,
+      sSTMATIC
+    );
+
     // // We check revert when trying to borrow at stable
     // try
     //   AaveV3Helpers._borrow(
