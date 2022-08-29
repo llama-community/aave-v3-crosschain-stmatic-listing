@@ -1,0 +1,4 @@
+@aave-address-book=lib/aave-address-book/src/
+@aave-helpers=lib/aave-helpers/src/
+@forge-std=lib/forge-std/src/
+@solidity-utils=lib/solidity-utils/src/

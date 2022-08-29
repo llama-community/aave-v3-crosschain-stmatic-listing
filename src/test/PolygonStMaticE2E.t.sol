@@ -1,22 +1,22 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import 'forge-std/Test.sol';
-import {GovHelpers} from 'aave-helpers/GovHelpers.sol';
-import {AaveGovernanceV2, IExecutorWithTimelock} from 'aave-address-book/AaveGovernanceV2.sol';
+import '@forge-std/Test.sol';
+import {GovHelpers} from '@aave-helpers/GovHelpers.sol';
+import {AaveGovernanceV2, IExecutorWithTimelock} from '@aave-address-book/AaveGovernanceV2.sol';
 
 import {CrosschainForwarderPolygon} from '../contracts/polygon/CrosschainForwarderPolygon.sol';
-import {MiMaticPayload} from '../contracts/polygon/MiMaticPayload.sol';
+import {StMaticPayload} from '../contracts/polygon/StMaticPayload.sol';
 import {IStateReceiver} from '../interfaces/IFx.sol';
 import {IBridgeExecutor} from '../interfaces/IBridgeExecutor.sol';
 import {AaveV3Helpers, ReserveConfig, ReserveTokens, IERC20} from './helpers/AaveV3Helpers.sol';
 
-contract PolygonMiMaticE2ETest is Test {
+contract PolygonStMaticE2ETest is Test {
   // the identifiers of the forks
   uint256 mainnetFork;
   uint256 polygonFork;
 
-  MiMaticPayload public miMaticPayload;
+  StMaticPayload public stMaticPayload;
 
   address public constant CROSSCHAIN_FORWARDER_POLYGON =
     0x158a6bC04F0828318821baE797f50B0A1299d45b;
@@ -27,9 +27,9 @@ contract PolygonMiMaticE2ETest is Test {
   address public constant POLYGON_BRIDGE_EXECUTOR =
     0xdc9A35B16DB4e126cFeDC41322b3a36454B1F772;
 
-  address public constant MIMATIC = 0xa3Fa99A148fA48D14Ed51d610c367C61876997F1;
-  address public constant MIMATIC_WHALE =
-    0x95dD59343a893637BE1c3228060EE6afBf6F0730;
+  address public constant STMATIC = 0x3A58a54C066FdC0f2D55FC9C89F0415C92eBf3C4;
+  address public constant STMATIC_WHALE =
+    0x65752C54D9102BDFD69d351E1838A1Be83C924C6;
 
   address public constant DAI = 0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063;
   address public constant DAI_WHALE =
@@ -83,18 +83,20 @@ contract PolygonMiMaticE2ETest is Test {
 
   function testProposalE2E() public {
     vm.selectFork(polygonFork);
+
+    // we get all configs to later on check that payload only changes stMATIC
     ReserveConfig[] memory allConfigsBefore = AaveV3Helpers._getReservesConfigs(
       false
     );
 
     // 1. deploy l2 payload
     vm.selectFork(polygonFork);
-    miMaticPayload = new MiMaticPayload();
+    stMaticPayload = new StMaticPayload();
 
     // 2. create l1 proposal
     vm.selectFork(mainnetFork);
     vm.startPrank(AAVE_WHALE);
-    uint256 proposalId = _createProposal(address(miMaticPayload));
+    uint256 proposalId = _createProposal(address(stMaticPayload));
     vm.stopPrank();
 
     // 3. execute proposal and record logs so we can extract the emitted StateSynced event
@@ -132,30 +134,30 @@ contract PolygonMiMaticE2ETest is Test {
     );
 
     ReserveConfig memory expectedAssetConfig = ReserveConfig({
-      symbol: 'miMATIC',
-      underlying: MIMATIC,
+      symbol: 'stMATIC',
+      underlying: STMATIC,
       aToken: address(0), // Mock, as they don't get validated, because of the "dynamic" deployment on proposal execution
       variableDebtToken: address(0), // Mock, as they don't get validated, because of the "dynamic" deployment on proposal execution
       stableDebtToken: address(0), // Mock, as they don't get validated, because of the "dynamic" deployment on proposal execution
       decimals: 18,
-      ltv: 7500,
-      liquidationThreshold: 8000,
-      liquidationBonus: 10500,
-      liquidationProtocolFee: 1000,
-      reserveFactor: 1000,
+      ltv: 5000,
+      liquidationThreshold: 6500,
+      liquidationBonus: 11000,
+      liquidationProtocolFee: 2000,
+      reserveFactor: 2000,
       usageAsCollateralEnabled: true,
-      borrowingEnabled: true,
+      borrowingEnabled: false,
       interestRateStrategy: AaveV3Helpers
-        ._findReserveConfig(allConfigsAfter, 'USDT', false)
+        ._findReserveConfig(allConfigsAfter, 'stMATIC', true)
         .interestRateStrategy,
       stableBorrowRateEnabled: false,
       isActive: true,
       isFrozen: false,
       isSiloed: false,
-      supplyCap: 100_000_000,
+      supplyCap: 7_500_000,
       borrowCap: 0,
-      debtCeiling: 2_000_000_00,
-      eModeCategory: 1
+      debtCeiling: 0,
+      eModeCategory: 2
     });
 
     AaveV3Helpers._validateReserveConfig(expectedAssetConfig, allConfigsAfter);
@@ -167,27 +169,27 @@ contract PolygonMiMaticE2ETest is Test {
 
     AaveV3Helpers._validateReserveTokensImpls(
       vm,
-      AaveV3Helpers._findReserveConfig(allConfigsAfter, 'miMATIC', false),
+      AaveV3Helpers._findReserveConfig(allConfigsAfter, 'stMATIC', false),
       ReserveTokens({
-        aToken: miMaticPayload.ATOKEN_IMPL(),
-        stableDebtToken: miMaticPayload.SDTOKEN_IMPL(),
-        variableDebtToken: miMaticPayload.VDTOKEN_IMPL()
+        aToken: stMaticPayload.ATOKEN_IMPL(),
+        stableDebtToken: stMaticPayload.SDTOKEN_IMPL(),
+        variableDebtToken: stMaticPayload.VDTOKEN_IMPL()
       })
     );
 
     AaveV3Helpers._validateAssetSourceOnOracle(
-      MIMATIC,
-      miMaticPayload.PRICE_FEED()
+      STMATIC,
+      stMaticPayload.PRICE_FEED()
     );
 
-    // impl should be same as USDC
+    // Reserve token implementation contracts should be same as USDC
     AaveV3Helpers._validateReserveTokensImpls(
       vm,
       AaveV3Helpers._findReserveConfig(allConfigsAfter, 'USDC', false),
       ReserveTokens({
-        aToken: miMaticPayload.ATOKEN_IMPL(),
-        stableDebtToken: miMaticPayload.SDTOKEN_IMPL(),
-        variableDebtToken: miMaticPayload.VDTOKEN_IMPL()
+        aToken: stMaticPayload.ATOKEN_IMPL(),
+        stableDebtToken: stMaticPayload.SDTOKEN_IMPL(),
+        variableDebtToken: stMaticPayload.VDTOKEN_IMPL()
       })
     );
 
@@ -197,95 +199,97 @@ contract PolygonMiMaticE2ETest is Test {
   function _validatePoolActionsPostListing(
     ReserveConfig[] memory allReservesConfigs
   ) internal {
-    address aMIMATIC = AaveV3Helpers
-      ._findReserveConfig(allReservesConfigs, 'miMATIC', false)
+    address aSTMATIC = AaveV3Helpers
+      ._findReserveConfig(allReservesConfigs, 'stMATIC', false)
       .aToken;
-    address vMIMATIC = AaveV3Helpers
-      ._findReserveConfig(allReservesConfigs, 'miMATIC', false)
+    address vSTMATIC = AaveV3Helpers
+      ._findReserveConfig(allReservesConfigs, 'stMATIC', false)
       .variableDebtToken;
-    address sMIMATIC = AaveV3Helpers
-      ._findReserveConfig(allReservesConfigs, 'miMATIC', false)
+    address sSTMATIC = AaveV3Helpers
+      ._findReserveConfig(allReservesConfigs, 'stMATIC', false)
       .stableDebtToken;
-    address aDAI = AaveV3Helpers
+    address vDAI = AaveV3Helpers
       ._findReserveConfig(allReservesConfigs, 'DAI', false)
-      .aToken;
+      .variableDebtToken;
 
+    // Deposit stMATIC from stMATIC Whale and receive aSTMATIC
     AaveV3Helpers._deposit(
       vm,
-      MIMATIC_WHALE,
-      MIMATIC_WHALE,
-      MIMATIC,
+      STMATIC_WHALE,
+      STMATIC_WHALE,
+      STMATIC,
       666 ether,
       true,
-      aMIMATIC
+      aSTMATIC
     );
 
-    // We check revert when trying to borrow at stable
-    try
-      AaveV3Helpers._borrow(
-        vm,
-        MIMATIC_WHALE,
-        MIMATIC_WHALE,
-        MIMATIC,
-        10 ether,
-        1,
-        sMIMATIC
-      )
-    {
-      revert('_testProposal() : BORROW_NOT_REVERTING');
-    } catch Error(string memory revertReason) {
-      require(
-        keccak256(bytes(revertReason)) == keccak256(bytes('31')),
-        '_testProposal() : INVALID_STABLE_REVERT_MSG'
-      );
-      vm.stopPrank();
-    }
-
-    vm.startPrank(DAI_WHALE);
-    IERC20(DAI).transfer(MIMATIC_WHALE, 666 ether);
-    vm.stopPrank();
-
-    AaveV3Helpers._deposit(
-      vm,
-      MIMATIC_WHALE,
-      MIMATIC_WHALE,
-      DAI,
-      666 ether,
-      true,
-      aDAI
-    );
-
+    // Testing borrowing of DAI against stMATIC as collateral
     AaveV3Helpers._borrow(
       vm,
-      MIMATIC_WHALE,
-      MIMATIC_WHALE,
-      MIMATIC,
-      222 ether,
+      STMATIC_WHALE,
+      STMATIC_WHALE,
+      DAI,
+      2 ether,
       2,
-      vMIMATIC
+      vDAI
     );
 
-    // Not possible to borrow and repay when vdebt index doesn't changing, so moving 1s
-    skip(1);
+    // Expecting to Revert with error code '30' ('BORROWING_NOT_ENABLED') for stable rate borrowing
+    // https://github.com/aave/aave-v3-core/blob/master/contracts/protocol/libraries/helpers/Errors.sol#L39
+    vm.expectRevert(bytes('30'));
+    AaveV3Helpers._borrow(
+      vm,
+      STMATIC_WHALE,
+      STMATIC_WHALE,
+      STMATIC,
+      10 ether,
+      1,
+      sSTMATIC
+    );
+    vm.stopPrank();
 
+    // Expecting to Revert with error code '30' ('BORROWING_NOT_ENABLED') for variable rate borrowing
+    // https://github.com/aave/aave-v3-core/blob/master/contracts/protocol/libraries/helpers/Errors.sol#L39
+    vm.expectRevert(bytes('30'));
+    AaveV3Helpers._borrow(
+      vm,
+      STMATIC_WHALE,
+      STMATIC_WHALE,
+      STMATIC,
+      10 ether,
+      2,
+      vSTMATIC
+    );
+    vm.stopPrank();
+
+    // Transferring some extra DAI to stMATIC whale for repaying back the loan.
+    vm.startPrank(DAI_WHALE);
+    IERC20(DAI).transfer(STMATIC_WHALE, 300 ether);
+    vm.stopPrank();
+
+    // Not possible to borrow and repay when vdebt index doesn't changing, so moving ahead 10000s
+    skip(10000);
+
+    // Repaying back DAI loan
     AaveV3Helpers._repay(
       vm,
-      MIMATIC_WHALE,
-      MIMATIC_WHALE,
-      MIMATIC,
-      IERC20(MIMATIC).balanceOf(MIMATIC_WHALE),
+      STMATIC_WHALE,
+      STMATIC_WHALE,
+      DAI,
+      IERC20(DAI).balanceOf(STMATIC_WHALE),
       2,
-      vMIMATIC,
+      vDAI,
       true
     );
 
+    // Withdrawing stMATIC
     AaveV3Helpers._withdraw(
       vm,
-      MIMATIC_WHALE,
-      MIMATIC_WHALE,
-      MIMATIC,
+      STMATIC_WHALE,
+      STMATIC_WHALE,
+      STMATIC,
       type(uint256).max,
-      aMIMATIC
+      aSTMATIC
     );
   }
 }
