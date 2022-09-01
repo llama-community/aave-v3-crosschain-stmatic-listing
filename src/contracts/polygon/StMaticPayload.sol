@@ -88,13 +88,6 @@ contract StMaticPayload is IProposalGenericExecutor {
   address public constant WMATIC = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
 
   function execute() external override {
-    // -------------
-    // 0. Claim pool admin
-    // Only needed for the first proposal on any market. If ACL_ADMIN was previously set it will ignore
-    // https://github.com/aave/aave-v3-core/blob/master/contracts/dependencies/openzeppelin/contracts/AccessControl.sol#L207
-    // -------------
-    AaveV3Polygon.ACL_MANAGER.addPoolAdmin(AaveV3Polygon.ACL_ADMIN);
-
     // ----------------------------
     // 1. New price feed on oracle
     // ----------------------------
