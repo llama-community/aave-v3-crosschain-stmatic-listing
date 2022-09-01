@@ -121,13 +121,6 @@ contract StMaticPayload is IProposalGenericExecutor {
       COL_LIQ_BONUS
     );
 
-    // Borrowing Disabled
-    configurator.setBorrowableInIsolation(UNDERLYING, false);
-    configurator.setReserveBorrowing(UNDERLYING, false);
-    configurator.setSiloedBorrowing(UNDERLYING, false);
-    configurator.setReserveStableRateBorrowing(UNDERLYING, false);
-    configurator.setBorrowCap(UNDERLYING, 0);
-
     // Set Reserve Factor
     configurator.setReserveFactor(UNDERLYING, RESERVE_FACTOR);
 
