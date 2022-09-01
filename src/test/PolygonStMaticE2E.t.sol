@@ -193,6 +193,16 @@ contract PolygonStMaticE2ETest is Test {
       })
     );
 
+    string[] memory expectedAssetsEmode = new string[](2);
+    expectedAssetsEmode[0] = 'WMATIC';
+    expectedAssetsEmode[1] = 'stMATIC';
+
+    AaveV3Helpers._validateAssetsOnEmodeCategory(
+      2,
+      allConfigsAfter,
+      expectedAssetsEmode
+    );
+
     _validatePoolActionsPostListing(allConfigsAfter);
   }
 

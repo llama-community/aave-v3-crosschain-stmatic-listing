@@ -84,9 +84,12 @@ contract StMaticPayload is IProposalGenericExecutor {
   uint16 public constant EMODE_LIQ_BONUS = 10100; // 1%
   string public constant EMODE_LABEL = 'MATIC correlated';
 
+  // Other assets affected
+  address public constant WMATIC = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
+
   function execute() external override {
     // -------------
-    // Claim pool admin
+    // 0. Claim pool admin
     // Only needed for the first proposal on any market. If ACL_ADMIN was previously set it will ignore
     // https://github.com/aave/aave-v3-core/blob/master/contracts/dependencies/openzeppelin/contracts/AccessControl.sol#L207
     // -------------
@@ -155,11 +158,12 @@ contract StMaticPayload is IProposalGenericExecutor {
       EMODE_LTV,
       EMODE_LIQ_THRESHOLD,
       EMODE_LIQ_BONUS,
-      PRICE_FEED,
+      address(0),
       EMODE_LABEL
     );
 
-    // Set the Asset EMode Category
+    // Set the Asset EMode Category ID 2 for stMATIC AND WMATIC
     configurator.setAssetEModeCategory(UNDERLYING, EMODE_CATEGORY);
+    configurator.setAssetEModeCategory(WMATIC, EMODE_CATEGORY);
   }
 }
