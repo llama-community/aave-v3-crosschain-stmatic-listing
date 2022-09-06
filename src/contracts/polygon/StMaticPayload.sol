@@ -8,8 +8,27 @@ import {IProposalGenericExecutor} from '../../interfaces/IProposalGenericExecuto
 
 /**
  * @author Llama
- * @dev This payload lists stMATIC (stMATIC) as borrowing asset on Aave V3 Polygon
- * - Parameter snapshot: https://snapshot.org/#/aave.eth/proposal/0xc8646abba01becf81ad32bf4adf48f723a31483dc4dedc773bbb6e3954c3990f
+ * @dev This payload lists stMATIC (stMATIC) as a collateral and non-borrowing asset on Aave V3 Polygon
+ * Governance Forum Post: https://governance.aave.com/t/proposal-add-support-for-stmatic-lido/7677
+ * Parameter snapshot: https://snapshot.org/#/aave.eth/proposal/0xc8646abba01becf81ad32bf4adf48f723a31483dc4dedc773bbb6e3954c3990f
+ *
+ * Since the original snapshot vote, a risk assessment was performed recommending the following parameter changes:
+ * (https://governance.aave.com/t/proposal-add-support-for-stmatic-lido/7677/19)
+ * - Borrowing: No
+ * - Collateral: Yes
+ * - Collateral LTV: 55% -> 50%
+ * - Collateral Liquidation Threshold: 62% -> 65%
+ * - Collateral Liquidation Bonus: 15% -> 10%
+ * - Reserve Factor: Nothing -> 20%
+ * - Supply Cap: Nothing -> 7.5m stMATIC
+ * - Liquidation Protocol Fee: Nothing -> 20%
+ * - Interest Rate Strategy Parameters Contract: 0x03733F4E008d36f2e37F0080fF1c8DF756622E6F
+ * - Creating new eMode Category of id 2 (for MATIC correlated assets):
+ *    - eMode Category id 2 LTV: 92.5%
+ *    - eMode Category id 2 Liquidation Threshold: 95%
+ *    - eMode Category id 2 Liquidation Bonus: 1%
+ *    - eMode Category id 2 Label: MATIC correlated
+ *
  */
 contract StMaticPayload is IProposalGenericExecutor {
   // **************************
@@ -63,16 +82,12 @@ contract StMaticPayload is IProposalGenericExecutor {
   uint16 public constant EMODE_LTV = 9250; // 92.5%
   uint16 public constant EMODE_LIQ_THRESHOLD = 9500; // 95%
   uint16 public constant EMODE_LIQ_BONUS = 10100; // 1%
-  string public constant EMODE_LABEL = 'stMATIC';
+  string public constant EMODE_LABEL = 'MATIC correlated';
+
+  // Other assets affected
+  address public constant WMATIC = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
 
   function execute() external override {
-    // -------------
-    // Claim pool admin
-    // Only needed for the first proposal on any market. If ACL_ADMIN was previously set it will ignore
-    // https://github.com/aave/aave-v3-core/blob/master/contracts/dependencies/openzeppelin/contracts/AccessControl.sol#L207
-    // -------------
-    AaveV3Polygon.ACL_MANAGER.addPoolAdmin(AaveV3Polygon.ACL_ADMIN);
-
     // ----------------------------
     // 1. New price feed on oracle
     // ----------------------------
@@ -121,13 +136,6 @@ contract StMaticPayload is IProposalGenericExecutor {
       COL_LIQ_BONUS
     );
 
-    // Borrowing Disabled
-    configurator.setBorrowableInIsolation(UNDERLYING, false);
-    configurator.setReserveBorrowing(UNDERLYING, false);
-    configurator.setSiloedBorrowing(UNDERLYING, false);
-    configurator.setReserveStableRateBorrowing(UNDERLYING, false);
-    configurator.setBorrowCap(UNDERLYING, 0);
-
     // Set Reserve Factor
     configurator.setReserveFactor(UNDERLYING, RESERVE_FACTOR);
 
@@ -143,11 +151,12 @@ contract StMaticPayload is IProposalGenericExecutor {
       EMODE_LTV,
       EMODE_LIQ_THRESHOLD,
       EMODE_LIQ_BONUS,
-      PRICE_FEED,
+      address(0),
       EMODE_LABEL
     );
 
-    // Set the Asset EMode Category
+    // Set the Asset EMode Category ID 2 for stMATIC AND WMATIC
     configurator.setAssetEModeCategory(UNDERLYING, EMODE_CATEGORY);
+    configurator.setAssetEModeCategory(WMATIC, EMODE_CATEGORY);
   }
 }
